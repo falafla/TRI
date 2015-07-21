@@ -1,31 +1,107 @@
 ---
-title: "Teoría clásica del test"
+title: "Teoría de respuesta al ítem"
+subtitle: Práctica computacional
 author: "Andrés Gutiérrez"
 date: "July 15, 2015"
 output: ioslides_presentation
 ---
 
-## R Markdown
+# Teoría clásica del test {.build}
+<div class="white">
+Los fundamentos de la teoría actual están cimentados en la teoría clásica del test. Antes de formular cualquier modelo, es necesario verificar el comportamiento de los ítems que componen la prueba y de las habilidades de las personas que fueron expuestas a la prueba. 
+</div>
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+## Librerías de interés
+Se proponene las siguientes librerías para realizar la programación automatizada de las estadísticas descriptivas de un test. Todas ellas pueden ser descardas del CRAN  <http://cran.r-project.org>.
 
-## Slide with Bullets
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+- `ggplot2`, `gridExtra` - Para mejorar el entorno gráfico.
+- `dplyr` - Para manejar bases de datos.
+- `psych`, `CTT`, `CMC` - Implementan medidas clásicas de confiabiliad de las pruebas.
+- `lavaan`, `semPlot` - Ejecutan análisis de componentes principales y análisis factoriales exploratorios y confirmatorios.
+- `ltm`, `mirt` - Muestran algunos gráficos de interés.
 
-## Slide with R Code and Output
+## Carga de las librerías
+```{r, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(dplyr)
+library(CTT)
+library(CMC)
+library(lavaan)
+library(semPlot)
+library(psych)
+library(ltm)
+library(mirt)
+```
+
+## SAT12 - conjunto de datos 
+Este conjunto de datos contiene 32 ítems del *science assesment test* (SAT) aplicados a 600 estudiantes de grado 12.
 
 ```{r}
-summary(cars)
+data(SAT12)
+dim(SAT12)
+head(SAT12)
 ```
 
-## Slide with Plot
+## Ejercicio
+Teniendo en cuenta que la opción 8 representa una omisión, realice un análisis de las opciones de respuesta que los estudiantes escogieron.
 
-```{r, echo=FALSE}
-plot(cars)
+```{r}
+plot(as.factor(SAT12$Item.1))
 ```
 
+## La clave 
+En un test de opción múltiple, la clave se refiere a la opción considerada como correcta. De esta forma, los datos con varias categorías se convierten en un conjunto de unos y ceros. **¿Qué pasa con las omisiones?**
+
+```{r}
+# La clave para cada ítem
+key <- c(1,4,5,2,3,1,2,1,3,1,2,4,2,1,5,3,4,4,1,4,3,3,4,1,3,5,1,3,1,5,4,5)
+
+# Matriz de unos y ceros
+Ex1 <- key2binary(SAT12,key)
+head(Ex1)
+```
+
+## Número de aciertos
+Esta es una medida bastante utilizada en la descripción de la *dificultad* de los ítems
+
+```{r}
+# proporciones de aciertos
+prop <- colMeans(Ex1)
+head(prop)
+# varianza
+var <- prop * (1 - prop)
+head(var)
+```
+
+## Ejercicio
+Revise estos gráficos con detenemimiento. ¿Observa algo insual en el comportamiento de las proporciones?
+
+```{r}
+par(mfrow = c(1,2))
+boxplot(prop, main="Proporciones"); boxplot(var, main="Varianzas")
+```
+
+## Construyendo una *escala* para la habilidad
+La habilidad (del estudiante) es una función del número de respuestas correctas (p.ej. suma de los unos y ceros o el promedio).
+
+```{r}
+# proporciones estandarizadas
+habilidad <- rowMeans(Ex1)
+head(habilidad)
+mean(habilidad)
+sd(habilidad)
+```
+
+## Construyendo una *escala* para la dificultad
+Un ejercicio primario consiste en estandarizar las habilidades observadas en la prueba (también se podría estandarizar las dificultades).
+
+```{r, fig.height=3}
+habilidad.est <- scale(habilidad)
+hist(habilidad.est)
+```
+
+## Contraste de habilidades y dificultades observadas
+Un ejercicio primario consiste en estandarizar las dificualtades observadas en la prueba.
