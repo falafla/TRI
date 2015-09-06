@@ -137,7 +137,7 @@ biserial.cor(data$Item.15, data$Item.11, level = 2)
 #Análisis factorial exploratorio
 
 sam1 <- sample_n(as.data.frame(Ex1), 300)
-#fa.parallel.poly(sam1, correct=TRUE) 
+fa.parallel.poly(sam1, correct=TRUE) 
 factor.Ex1 <- fa(Ex1, nfactors=2, rotate="oblimin")
 factor.Ex1
 fa.diagram(factor.Ex1)
