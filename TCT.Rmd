@@ -103,5 +103,135 @@ habilidad.est <- scale(habilidad)
 hist(habilidad.est)
 ```
 
-## Contraste de habilidades y dificultades observadas
-Un ejercicio primario consiste en estandarizar las dificualtades observadas en la prueba.
+## Construyendo una *escala* para la dificultad
+Un ejercicio primario consiste en estandarizar las proporciones de aciertos observadas en la prueba.
+
+```{r, fig.height=3}
+dificultad.est <- scale(prop)
+hist(dificultad.est)
+```
+
+
+## Habilidades y dificultades observadas
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+data_final <- data.frame(y=c(dificultad.est, habilidad.est),
+                         factor=c(rep("dificultad",32),rep("habilidad",600)))
+
+scala <- function(lims)return(c(seq(floor(min(lims[1])),ceiling(max(lims[2])),1)))
+
+ggplot(data=data_final) +
+ geom_bar(data=data_final[data_final$factor=="dificultad",],aes(x=rep(y,10),fill=rep(factor,10))) +  
+ geom_bar(data=data_final[data_final$factor=="habilidad",],aes(y=..count..*(-1),x=y,fill=factor)) + coord_flip()+
+ scale_x_continuous(breaks=scala)+
+ theme_bw(base_size=25) + theme(axis.text.x=element_text(color="transparent",size=0),axis.ticks.x=element_line(color="transparent"))+
+ theme(legend.position="bottom",legend.direction="horizontal")+labs(x="",y="")+
+ guides(fill = guide_legend(title = ""))
+```
+
+## Puntaje de la prueba
+La calificación final de la prueba por lo general se establece con base en una escala predefinida antes de la aplicación del examen.  
+
+```{r}
+score <- 5 + 2 * habilidad.est
+mean(score); sd(score)
+min(score); max(score)
+```
+
+## Puntaje de la prueba
+```{r}
+par(mfrow=c(1, 2))
+hist(score)
+boxplot(score)
+```
+
+## Gráficos de ítems
+Los siguientes gráficos muestran el comportamiento de la población en cada uno de los puntajes (vistos como factor) de los ceros y unos para cada ítem. Es deseable que el gráfico muestre agregaciones en ceros (a la izquierda), unos (a la derecha) y cajas que cubran el espectro de cero a uno (en el centro).
+
+```{r}
+data <- data.frame(Ex1, score = score, hab = habilidad)
+p1 <- qplot(as.factor(score), Item.1, data = data, geom = c("boxplot"))
+p2 <- qplot(as.factor(score), Item.2, data = data, geom = c("boxplot"))
+p3 <- qplot(as.factor(score), Item.3, data = data, geom = c("boxplot"))
+p4 <- qplot(as.factor(score), Item.4, data = data, geom = c("boxplot"))
+```
+
+## Gráficos de ítems
+```{r}
+grid.arrange(p1,p2,p3,p4)
+```
+
+## Discriminación
+```{r, fig.keep='none'}
+N <- nrow(Ex1)
+p <- ncol(Ex1)
+
+data1 <- data %>% arrange(score) 
+data1$hab <- 'medio'
+data1$hab[c(1:round(N * 0.3))] <- 'bajo'
+data1$hab[c(round(N * 0.7) :N)] <- 'alto'
+
+boxplot(data1$Item.1 ~ data1$hab) 
+boxplot(data1$Item.2 ~ data1$hab) 
+boxplot(data1$Item.3 ~ data1$hab) 
+boxplot(data1$Item.4 ~ data1$hab) 
+```
+
+## Discriminación
+```{r, echo=FALSE}
+par(mfrow=c(2, 2))
+boxplot(data1$Item.1 ~ data1$hab) 
+boxplot(data1$Item.2 ~ data1$hab) 
+boxplot(data1$Item.3 ~ data1$hab) 
+boxplot(data1$Item.4 ~ data1$hab) 
+```
+
+## Discriminación
+```{r}
+V1.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.1))
+V2.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.2))
+V3.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.3))
+V4.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.4))
+
+disc1 <- V1.hab[1, "prop"] - V1.hab[2, "prop"]
+disc2 <- V2.hab[1, "prop"] - V2.hab[2, "prop"]
+disc3 <- V3.hab[1, "prop"] - V3.hab[2, "prop"]
+disc4 <- V4.hab[1, "prop"] - V4.hab[2, "prop"]
+```
+
+## Discriminación
+```{r}
+V1.hab; V2.hab
+```
+
+## Discriminación
+```{r}
+disc1; disc2; disc3; disc4
+```
+
+**¿Cuáles son los ítems que más discriminan y por qué?**
+
+
+## Azar
+```{r}
+data2 <- filter(data, score < 1)
+colMeans(data2)
+```
+**¿Cuál es la diferencia entre el item 11 y el item 13?**
+
+
+## Curva característica del ítem
+```{r}
+cttICC(data$score, data$Item.1)
+```
+
+## Curva característica del ítem
+```{r}
+dsc <- descript(Ex1[,1:5], 3)
+plot(dsc, type = "b", lty = 1, pch = 1:5)
+```
+
+## Confiabilidad de la prueba
+```{r}
+reliability(Ex1)
+```
