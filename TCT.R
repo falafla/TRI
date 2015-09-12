@@ -14,7 +14,7 @@ library(mirt)
 data(SAT12)
 head(SAT12)
 #SAT12[SAT12 == 8] <- NA
-#descript(SAT12)
+descript(SAT12)
 key <- c(1,4,5,2,3,1,2,1,3,1,2,4,2,1,5,3,4,4,1,4,3,3,4,1,3,5,1,3,1,5,4,5)
 
 # Scores for each preson 
@@ -23,7 +23,7 @@ N <- nrow(Ex1)
 p <- ncol(Ex1)
   
 # proporciones de aciertos
-prop <- colMeans(Ex1, na.rm = TRUE)
+prop <- colMeans(Ex1)
 prop
 # varianza
 var <- prop * (1 - prop)
@@ -33,7 +33,7 @@ boxplot(prop, main="Proporciones")
 boxplot(var, main="Varianzas")
 
 # proporciones estandarizadas
-habilidad <- scale(rowMeans(Ex1, na.rm = TRUE))
+habilidad <- scale(rowMeans(Ex1))
 mean(habilidad)
 sd(habilidad)
 hist(habilidad)
@@ -59,12 +59,10 @@ data1$hab <- 'medio'
 data1$hab[c(1:round(N * 0.3))] <- 'bajo'
 data1$hab[c(round(N * 0.7) :N)] <- 'alto'
 
-table(data1$hab)
-
-V1.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.1, na.rm = TRUE))
-V2.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.2, na.rm = TRUE))
-V3.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.3, na.rm = TRUE))
-V4.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.4, na.rm = TRUE))
+V1.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.1))
+V2.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.2))
+V3.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.3))
+V4.hab <- data1 %>% group_by(hab) %>% summarise(prop = mean(Item.4))
 
 disc1 <- V1.hab[1, "prop"] - V1.hab[2, "prop"]
 disc2 <- V2.hab[1, "prop"] - V2.hab[2, "prop"]
@@ -72,12 +70,11 @@ disc3 <- V3.hab[1, "prop"] - V3.hab[2, "prop"]
 disc4 <- V4.hab[1, "prop"] - V4.hab[2, "prop"]
 
 disc1; disc2; disc3; disc4
-
 #Curvas características de ítems
-cttICC(data$hab, data$Item.1)
-cttICC(data$hab, data$Item.2)
-cttICC(data$hab, data$Item.3)
-cttICC(data$hab, data$Item.4)
+cttICC(data$score, data$Item.1)
+cttICC(data$score, data$Item.2)
+cttICC(data$score, data$Item.3)
+cttICC(data$score, data$Item.4)
 
 #dsc <- descript(Ex1[,1:5], 3)
 #dsc
@@ -98,7 +95,6 @@ for (i in 1:length(elements.to.remove.1)) {
   alpha.1[i] = alpha.cronbach(data.reduced)
 }
 alpha.1
-max(alpha.1)
 
 # Cronbach - Mesbah plots
 alpha.curve(Ex1)
@@ -148,8 +144,8 @@ model <- '
 #Modelo de medición
 Factor1 =~ Item.6 + Item.29 + Item.26 + Item.18 + Item.25 + Item.4 +
 Item.23 + Item.1 + Item.3 + Item.16 + Item.8 + Item.2
-Factor2 =~ Item.15 + Item.31 + Item.27 + Item.7 + Item.24 + Item.13 + Item.22
-Factor3 =~ Item.17 + Item.20
+Factor2 =~ Item.15 + Item.31 + Item.27 + Item.7 + Item.24 + Item.13 + Item.22 +
+Item.17 + Item.20 
 '
 
 sam2 <- sample_n(as.data.frame(Ex1), 300)
