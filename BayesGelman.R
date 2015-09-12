@@ -44,6 +44,23 @@ for(k in 1:niter) {
 
 betas
 
+#Distribución previa
+# beta ~ Normal2(b, B)
+
+b <- c(0, 0)
+B <- diag(c(1000, 1000))
+
+# Verosimilitud 
+# Z ~ Normal(x %*% betas, diag(c(si)))
+Sigma <- diag(c(si))
+
+#Posterior 
+# beta | Y ~ Normal2(bq, Bq)
+
+Bq <- solve(solve(B) + t(x) %*% solve(Sigma) %*% x)
+bq <- Bq %*% (solve(B) %*% b + t(x) %*% solve(Sigma) %*% zi)
+
+
 
 
 

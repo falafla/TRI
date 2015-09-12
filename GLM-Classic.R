@@ -11,11 +11,11 @@ Ex1 <- as.data.frame(key2binary(SAT12,key))
 prop <- colMeans(Ex1)
 prop
 puntaje <- scale(rowMeans(Ex1))
-Ex1$puntaje <- 5 + 2 * puntaje
+Ex1$puntaje <- 5 + 1 * puntaje
 names(Ex1)
 
 # Regresiones logísticas para cada ítem
-glm(Item.1 ~ puntaje - 1, family = binomial, data = Ex1)
+glm(Item.6 ~ puntaje - 1, family = binomial, data = Ex1)
 
 beta <- NULL
 

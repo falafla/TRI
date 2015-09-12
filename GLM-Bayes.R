@@ -4,6 +4,7 @@ library(mirt)
 library(rjags)
 library(R2jags)
 library(coda)
+library(gtools) 
 
 data(SAT12)
 head(SAT12)
@@ -62,7 +63,7 @@ p <- ncol(Ex1) - 1
 
 bayes.data <- list("y", "x", "n", "p")
 bayes.param <- c("b")
-bayes.inits <- function(){list("b"=rep(0, p))}
+bayes.inits <- function(){list("b" = rep(0, p))}
 
 set.seed(123)
 
@@ -72,9 +73,8 @@ bayes.fit <- jags(data = bayes.data, inits = bayes.inits, bayes.param,
 
 mcmc <- as.mcmc(bayes.fit)
 beta <- as.matrix(summary(mcmc)$statistics)[1:p,1]
+beta <- beta[mixedsort(names(beta))]
+
 
 # plot contra proporciones de aciertos
 plot(beta, prop)
-
-
-
