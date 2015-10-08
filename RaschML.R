@@ -49,25 +49,35 @@ Pij <- function(b, theta){
 
 
 # b.new hace una iteración del Newton Raphson
-b.new <- function(b.old,theta.conocido){
+b.new <- function(b.old, theta.conocido){
   b.value <- c()
   for (i in 1:p) {
     PP <- Pij(b.old[i], theta.conocido)
-    b.value[i] <- b.old[i] + (sum(y[,i]) - sum(PP$P)) / sum(PP$W)
+    b.value[i] <- b.old[i] - (sum(y[,i]) - sum(PP$P)) / sum(PP$W)
   }
   b.value
 }
-
 # b.iter hace muchas iteraciones
-b.iter <- function(b.initial, theta.conocido){
-  b.result <- b.new(b.initial, theta.conocido)
-  while (max(abs(b.result - b.initial)) > 0.001) {
-    b.initial <- b.result
-    b.result <- b.new(b.initial,theta.conocido)
-  }
-  b.result
-}
 
+# b.iter <- function(iter, b.initial, theta.conocido){
+#   for(l in 1:iter) {
+#     b.result <- b.new(b.initial, theta.conocido)
+#     b.initial <- b.result
+#   }
+#   return(b.result)
+# }
+# 
+# b.iter(10, rep(0,p), theta)
+
+ b.iter <- function(b.initial, theta.conocido){
+   b.result <- b.new(b.initial, theta.conocido)
+   while (max(abs(b.result - b.initial)) > 0.001) {
+     b.initial <- b.result
+     b.result <- b.new(b.initial,theta.conocido)
+   }
+   b.result
+ }
+ 
 ######################################
 ######################################
 
@@ -111,23 +121,65 @@ hist(theta.est)
 ##### Estimación conjunta #####
 ###############################
 
-H <- function()
- 
-conjunta <- function(iter, b.initial, theta.initial){
-  for (w in 1:iter) {
-    theta <- theta.new(theta.initial, b.initial)
-    b <- b.new(b.initial, theta)
-    theta.intial <- (theta - mean(theta)) / sd(theta)
-    b.initial <- (b - mean(b)) / sd(b)
+g <- function(b, theta){
+  g.value <- c()
+  b.value <- c()
+  theta.value <- c()
+  for (i in 1:p) {
+    PP <- Pij(b[i], theta)
+    b.value[i] <- - (sum(y[,i]) - sum(PP$P))
   }
-  list(theta = theta, b = b)
+  for (j in 1:n) {
+    PP <- Pij(b, theta[j])
+    theta.value[j] <- sum(y[j,]) - sum(PP$P)
+  }
+  g.value <- c(b.value, theta.value)
+  return(g.value)
+}
+
+g(b, theta)
+
+H <- function(b, theta){
+  H.all <- matrix(0, nrow = n + p, ncol = n + p)
+  H.b <- matrix(0, nrow = p, ncol = p) 
+  H.t <- matrix(0, nrow = n, ncol = n) 
+  H.b.t <- matrix(0, nrow = n, ncol = p)
+  
+#   for (j in 1:n) {
+#     for (i in 1:p) {
+#       H.b.t[j, i] <- Pij(b[i], theta[j])$W
+#     }
+#   }
+  for (i in 1:p) {
+    H.b[i, i] <- - sum(Pij(b[i], theta)$W)
+  }
+  for (j in 1:n) {
+    H.t[j, j] <- - sum(Pij(b, theta[j])$W)
+  }    
+  H.all <- cbind(rbind(H.b, H.b.t), rbind(t(H.b.t), H.t))
+  return(H.all)
+}
+
+ 
+FS <- function(iter, b.initial, theta.initial){
+  x.initial <- c(b.initial, theta.initial)
+  for (w in 1:iter) {
+    x.new <- x.initial - solve(H(b.initial, theta.initial)) %*% g(b.initial, theta.initial)
+    b.new <- x.new[1:p]
+    theta.new <- x.new[-c(1:p)]
+    x.initial <- (x.new - mean(theta.new)) / sd(theta.new)
+    # x.initial <- x.new
+  }
+  return(x.new)
 }
 
 
-aa <- conjunta(500, b.initial = rep(0,p), theta.initial = rep(0,n))
+aa <- FS(100, b.initial = rep(0, p), theta.initial = rep(0, n))
+aa
 
-plot(aa$theta)
-hist(aa$theta)
-plot(aa$b)
-hist(aa$b)
+est.b <- aa[1:p]
+est.theta <- aa[-c(1:p)]
 
+
+plot(est.b)
+plot(est.theta)
