@@ -165,6 +165,7 @@ FS <- function(iter, b.initial, theta.initial){
   x.initial <- c(b.initial, theta.initial)
   for (w in 1:iter) {
     x.new <- x.initial - solve(H(b.initial, theta.initial)) %*% g(b.initial, theta.initial)
+    #
     b.new <- x.new[1:p]
     theta.new <- x.new[-c(1:p)]
     x.initial <- (x.new - mean(theta.new)) / sd(theta.new)
